@@ -1,9 +1,9 @@
-/** @type {import('next').NextConfig} */
+/** @type {import('next').NextMode} */
 const nextConfig = {
-  eslint: {
-    ignoreDuringBuilds: true,
+  output: 'export', // Говорит Next.js скомпилировать сайт в статические файлы
+  images: {
+    unoptimized: true, // Чтобы картинки работали на GitHub Pages без сервера
   },
-  images: { unoptimized: true },
 };
 
 module.exports = nextConfig;
