@@ -1,12 +1,23 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Проверяем наличие реальных ключей. Если их нет — передаем валидный тестовый URL и JWT-токен
-const supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_URL.trim() !== '')
-  ? process.env.NEXT_PUBLIC_SUPABASE_URL
-  : 'https://placeholder-dental-app.supabase.co';
+const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-const supabaseAnonKey = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.trim() !== '')
-  ? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWNlaG9sZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE2MDk0NTkyMDAsImV4cCI6MTkyNTAzNTIwMH0.placeholder';
+// Проверяем, есть ли реальные рабочие данные для подключения
+const isConfigured = Boolean(url && url.startsWith('http') && key && key.length > 10);
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Если данные есть — подключаемся к Supabase. Если нет — используем безопасный заглушечный объект
+export const supabase = isConfigured
+  ? createClient(url!, key!)
+  : ({
+      from: () => ({
+        select: () => Promise.resolve({ data: [], error: null }),
+        insert: () => Promise.resolve({ data: [], error: null }),
+        update: () => Promise.resolve({ data: [], error: null }),
+        delete: () => Promise.resolve({ data: [], error: null }),
+      }),
+      auth: {
+        getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+        onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+      },
+    } as any);
